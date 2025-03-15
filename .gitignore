@@ -1,0 +1,60 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+env/
+venv/
+build/
+dist/
+eggs/
+.eggs-info/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.txt
+*.pth
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Environments created by pipenv
+Pipfile.lock
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# pyinstaller
+dist/
+build/
+
+# Log files
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Streamlit Cache
+.streamlit/cache/
+
+# Tesseract Data
+tessdata/
+
+# other temp files
+*.tmp
+*.swp
+*.bak
