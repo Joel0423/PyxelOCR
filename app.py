@@ -5,6 +5,7 @@ from PIL import Image
 from ocr_module import extract_text_from_image, extract_text_from_pdf
 from sentiment_module import SentimentAnalyzer
 from summarizer_module import TextSummarizer
+import install
 
 # Initialize the analyzers
 sentiment_analyzer = SentimentAnalyzer()
