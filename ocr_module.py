@@ -4,7 +4,7 @@ from pdf2image import convert_from_bytes
 import numpy as np
 
 # Configure Tesseract path
-pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+pytesseract.pytesseract.tesseract_cmd = None # search for tesseract binary in path
 
 def preprocess_image(image):
     """Preprocess image for better OCR results."""
