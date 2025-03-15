@@ -2,9 +2,21 @@ import cv2 as cv
 import pytesseract
 from pdf2image import convert_from_bytes
 import numpy as np
+import shutil
+import streamlit as st
 
 # Configure Tesseract path
-pytesseract.pytesseract.tesseract_cmd = None # search for tesseract binary in path
+pytesseract.pytesseract.tesseract_cmd = None
+
+# search for tesseract binary in path
+@st.cache_resource
+def find_tesseract_binary() -> str:
+    return shutil.which("tesseract")
+
+# set tesseract binary path
+pytesseract.pytesseract.tesseract_cmd = find_tesseract_binary()
+if not pytesseract.pytesseract.tesseract_cmd:
+    st.error("Tesseract binary not found in PATH. Please install Tesseract.")
 
 def preprocess_image(image):
     """Preprocess image for better OCR results."""
