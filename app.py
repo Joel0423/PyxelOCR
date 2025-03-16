@@ -13,6 +13,18 @@ text_summarizer = TextSummarizer()
 
 st.title("Advanced Document Analysis App")
 
+# Inject custom CSS to resize the camera input
+st.markdown(
+    """
+    <style>
+    div[data-testid="stCameraInput"] video {
+        height: 600px !important;  /* Adjust height as needed */
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 # Sidebar for input method selection
 input_method = st.sidebar.radio("Choose Input Method", 
                               ["File Upload", "Camera Capture"])
