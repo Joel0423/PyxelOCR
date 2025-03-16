@@ -11,19 +11,10 @@ import install
 sentiment_analyzer = SentimentAnalyzer()
 text_summarizer = TextSummarizer()
 
+st.set_page_config(layout="wide")
 st.title("Advanced Document Analysis App")
 
-# Inject custom CSS to resize the camera input
-st.markdown(
-    """
-    <style>
-    div[data-testid="stCameraInput"] video {
-        height: 600px !important;  /* Adjust height as needed */
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+
 
 # Sidebar for input method selection
 input_method = st.sidebar.radio("Choose Input Method", 
@@ -53,6 +44,18 @@ if input_method == "File Upload":
                     all_extracted_text += text + "\n"
 
 else:  # Camera Capture
+    # Inject custom CSS to resize the camera input
+    st.markdown(
+        """
+        <style>
+        div[data-testid="stCameraInput"] video {
+            height: 1500px !important;  /* Adjust height as needed */
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
     st.write("Camera Input")
     camera_image = st.camera_input("Take a picture")
     
