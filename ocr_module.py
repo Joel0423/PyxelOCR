@@ -4,6 +4,8 @@ from pdf2image import convert_from_bytes
 import numpy as np
 import shutil
 import streamlit as st
+import requests
+import os
 
 # Configure Tesseract path
 pytesseract.pytesseract.tesseract_cmd = None
@@ -22,25 +24,25 @@ def preprocess_image(image):
     """Preprocess image for better OCR results."""
     # Grayscale, Gaussian blur, Otsu's threshold
     opencv_image = np.array(image)
-    deskew_im = deskew(opencv_image)
-    gray = cv.cvtColor(deskew_im, cv.COLOR_RGB2GRAY)
+    #deskew_im = deskew(opencv_image)
+    gray = cv.cvtColor(opencv_image, cv.COLOR_RGB2GRAY)
     blur = cv.GaussianBlur(gray, (7,7),0)
 
     thresh = cv.adaptiveThreshold(blur,255,cv.ADAPTIVE_THRESH_GAUSSIAN_C,cv.THRESH_BINARY,117,8 )
 
-    
-
-    cv.imwrite("gray.jpg",gray)
-    cv.imwrite("thresh.jpg",thresh)
-    cv.imwrite("deskew.jpg",deskew_im)
-
-
-    return deskew_im
+    return thresh
 
 def extract_text_from_image(image):
     """Extracts text from an image using OCR."""
     preprocessed = preprocess_image(image)
-    text = pytesseract.image_to_string(preprocessed, lang='eng', config='--psm 6')
+    cv.imwrite("temp/processed.jpg", preprocessed)
+
+    compress_image("temp/processed.jpg", "temp/compression_output/compressed.jpg", target_size_kb=1024)
+    
+    response = ocr_space_file("temp/compression_output/compressed.jpg")
+    response_json = response.json()
+    text = response_json["ParsedResults"][0]["ParsedText"]
+
     return text
 
 def extract_text_from_pdf(pdf_bytes):
@@ -53,48 +55,54 @@ def extract_text_from_pdf(pdf_bytes):
         all_text += text + "\n"
     return all_text 
 
+def ocr_space_file(filename, overlay=False, api_key='d02f75016f88957', language='eng'):
+    """ OCR.space API request with local file.
+        Python3.5 - not tested on 2.7
+    :param filename: Your file path & name.
+    :param overlay: Is OCR.space overlay required in your response.
+                    Defaults to False.
+    :param api_key: OCR.space API key.
+                    Defaults to 'helloworld'.
+    :param language: Language code to be used in OCR.
+                    List of available language codes can be found on https://ocr.space/OCRAPI
+                    Defaults to 'en'.
+    :return: Result in JSON format.
+    """
 
-def getSkewAngle(cvImage) -> float:
-    # Prep image, copy, convert to gray scale, blur, and threshold
-    newImage = cvImage.copy()
-    gray = cv.cvtColor(newImage, cv.COLOR_BGR2GRAY)
-    blur = cv.GaussianBlur(gray, (9, 9), 0)
-    thresh = cv.threshold(blur, 0, 255, cv.THRESH_BINARY_INV + cv.THRESH_OTSU)[1]
+    payload = {'isOverlayRequired': overlay,
+               'apikey': api_key,
+               'language': language,
+               }
+    with open(filename, 'rb') as f:
+        r = requests.post('https://api.ocr.space/parse/image',
+                          files={filename: f},
+                          data=payload,
+                          )
+    return r
 
-    # Apply dilate to merge text into meaningful lines/paragraphs.
-    # Use larger kernel on X axis to merge characters into single line, cancelling out any spaces.
-    # But use smaller kernel on Y axis to separate between different blocks of text
-    kernel = cv.getStructuringElement(cv.MORPH_RECT, (30, 5))
-    dilate = cv.dilate(thresh, kernel, iterations=2)
-
-    # Find all contours
-    contours, hierarchy = cv.findContours(dilate, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
-    contours = sorted(contours, key = cv.contourArea, reverse = True)
-    for c in contours:
-        rect = cv.boundingRect(c)
-        x,y,w,h = rect
-        cv.rectangle(newImage,(x,y),(x+w,y+h),(0,255,0),2)
-
-    # Find largest contour and surround in min area box
-    largestContour = contours[0]
-    print (len(contours))
-    minAreaRect = cv.minAreaRect(largestContour)
-    cv.imwrite("temp/boxes.jpg", newImage)
-    # Determine the angle. Convert it to the value that was originally used to obtain skewed image
-    angle = minAreaRect[-1]
-    if angle < -45:
-        angle = 90 + angle
-    return -1.0 * angle
-# Rotate the image around its center
-def rotateImage(cvImage, angle: float):
-    newImage = cvImage.copy()
-    (h, w) = newImage.shape[:2]
-    center = (w // 2, h // 2)
-    M = cv.getRotationMatrix2D(center, angle, 1.0)
-    newImage = cv.warpAffine(newImage, M, (w, h), flags=cv.INTER_CUBIC, borderMode=cv.BORDER_REPLICATE)
-    return newImage
-
-# Deskew image
-def deskew(cvImage):
-    angle = getSkewAngle(cvImage)
-    return rotateImage(cvImage, -1.0 * angle)
+def compress_image(input_path, output_path, target_size_kb=1024, step=5):
+    """
+    Compress an image to a target file size using OpenCV.
+    
+    :param input_path: Path to the input image.
+    :param output_path: Path to save the compressed image.
+    :param target_size_kb: Target file size in KB (default: 1024 KB).
+    :param step: Reduction step for JPEG quality (default: 5).
+    """
+    # Load the image
+    img = cv.imread(input_path)
+    
+    # Set initial quality
+    quality = 95  # Start with high quality
+    target_size_bytes = target_size_kb * 1024  # Convert KB to Bytes
+    
+    while quality > 0:
+        # Save the image with the current quality
+        cv.imwrite(output_path, img, [cv.IMWRITE_JPEG_QUALITY, quality])
+        
+        # Check file size
+        if os.path.getsize(output_path) <= target_size_bytes:
+            break  # Stop if within the target size
+        
+        # Reduce quality for further compression
+        quality -= step  

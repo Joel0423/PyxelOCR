@@ -6,14 +6,12 @@ from ocr_module import extract_text_from_image, extract_text_from_pdf
 from sentiment_module import SentimentAnalyzer
 from summarizer_module import TextSummarizer
 import install
+from streamlit_webrtc import webrtc_streamer,  WebRtcMode
 
 # Initialize the analyzers
 sentiment_analyzer = SentimentAnalyzer()
 text_summarizer = TextSummarizer()
-
-st.set_page_config(layout="wide")
 st.title("Advanced Document Analysis App")
-
 
 
 # Sidebar for input method selection
@@ -44,25 +42,32 @@ if input_method == "File Upload":
                     all_extracted_text += text + "\n"
 
 else:  # Camera Capture
-    # Inject custom CSS to resize the camera input
-    st.markdown(
-        """
-        <style>
-        div[data-testid="stCameraInput"] video {
-            height: 1500px !important;  /* Adjust height as needed */
-        }
-        </style>
-        """,
-        unsafe_allow_html=True
+
+    class VideoProcessor:
+        frame = None  # Store the last frame
+
+        def recv(self, frame):
+            self.frame = frame
+            return frame
+
+    # Start WebRTC streamer
+    ctx = webrtc_streamer(
+        key="camera",
+        video_processor_factory=VideoProcessor,
+        media_stream_constraints={"video": {"width": 1280, "height": 720}}
     )
 
-    st.write("Camera Input")
-    camera_image = st.camera_input("Take a picture")
-    
-    if camera_image is not None:
-        # Process the camera image
-        image = Image.open(camera_image)
-        all_extracted_text = extract_text_from_image(image)
+    # Capture and process image
+    if ctx.video_processor and ctx.video_processor.frame:
+        st.write("Press 'Capture' to process the frame.")
+        
+        if st.button("Capture"):
+            frame = ctx.video_processor.frame.to_ndarray(format="bgr24")
+            image = Image.fromarray(frame)  # Convert frame to PIL Image
+            image.show()
+            
+            # Process the image
+            all_extracted_text = extract_text_from_image(image)
 
 # Process and display results if we have extracted text
 if 'all_extracted_text' in locals() and all_extracted_text:
