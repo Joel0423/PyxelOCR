@@ -54,7 +54,10 @@ else:  # Camera Capture
     ctx = webrtc_streamer(
         key="camera",
         video_processor_factory=VideoProcessor,
-        media_stream_constraints={"video": {"width": 1280, "height": 720}}
+        media_stream_constraints={"video": {"width": 1280, "height": 720}},
+        rtc_configuration={  # Add this config
+        "iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]
+        }
     )
 
     # Capture and process image
