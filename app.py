@@ -37,10 +37,8 @@ def save_analysis_output(text, sentiment_results, emotions, summary, key_phrases
     """Save analysis results to a file."""
     # clean the text of nonsensical words (ocr errors)
     text = clean_text(text)
-    sentiment_results = clean_text(sentiment_results) 
-    emotions = clean_text(emotions)
     summary = clean_text(summary)
-    key_phrases = clean_text(key_phrases)
+
 
     # Create title from first few words
     if large_line:
@@ -195,7 +193,13 @@ def show_file_upload():
                     
                     st.success(f"Analysis saved as: {title}")
                     st.session_state.outputs = st.session_state.outputs+1
-                    st.rerun()
+                    historical_outputs = load_historical_outputs()
+
+                    if historical_outputs:
+                        for output in historical_outputs:
+                            if output['title'] == title:
+                                st.session_state.selected_output = output
+                                st.rerun()
             else:
                 st.warning("No text was extracted from the uploaded files.")
 

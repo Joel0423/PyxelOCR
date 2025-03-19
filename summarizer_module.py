@@ -2,7 +2,7 @@ import spacy
 from transformers import pipeline
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
-import os
+from clean_txt_module import clean_text
 
 # Load spaCy model
 nlp = spacy.load('en_core_web_sm')
@@ -55,6 +55,7 @@ class TextSummarizer:
     def hybrid_summarize(self, text, length=0.3):
         """Combines both extractive and abstractive summarization."""
         # First get extractive summary
+        text = clean_text(text)
         extractive_summary = self.extractive_summarize(text, length)
         
         # Then apply abstractive summarization on the extractive summary
@@ -72,6 +73,7 @@ class TextSummarizer:
     
     def get_key_phrases(self, text):
         """Extracts key phrases from the text."""
+        text = clean_text(text)
         doc = nlp(text)
         noun_phrases = [chunk.text for chunk in doc.noun_chunks]
         return list(set(noun_phrases))[:min(8,len(noun_phrases))]  # Remove duplicates 

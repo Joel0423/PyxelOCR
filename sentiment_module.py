@@ -1,6 +1,7 @@
 import spacy
 from textblob import TextBlob
 from collections import defaultdict, Counter
+from clean_txt_module import clean_text
 
 # Load spaCy models
 nlp = spacy.load('en_core_web_sm')
@@ -16,6 +17,7 @@ class SentimentAnalyzer:
     
     def analyze_sentiment_combined(self, text):
         """Analyzes sentiment using TextBlob."""
+        text = clean_text(text)
         blob = TextBlob(text)
         
         # Get overall sentiment
@@ -51,6 +53,7 @@ class SentimentAnalyzer:
     def get_emotional_tone(self, text):
         """Analyzes emotional tone of the text using affect_ner model."""
         emotions = []
+        text = clean_text(text)
         doc = nlp_affect(text)
         
         if len(doc.ents) != 0:
