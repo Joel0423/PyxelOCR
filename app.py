@@ -123,6 +123,7 @@ def display_analysis_output(output_data):
 
 def show_file_upload():
     # File upload and processing
+    st.subheader("High resolution images give better results\nKeep the text as straight as possible")
     uploaded_files = st.file_uploader("Upload images or PDF", 
                                     type=["jpg", "jpeg", "png", "pdf"], 
                                     accept_multiple_files=True)
