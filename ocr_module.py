@@ -72,7 +72,7 @@ def ocr_space_file(filename, overlay=True, api_key='helloworld', language='eng')
                     Defaults to 'en'.
     :return: Result in JSON format.
     """
-    print(api_key)
+    st.write(api_key)
 
     payload = {'isOverlayRequired': overlay,
                'apikey': api_key,
