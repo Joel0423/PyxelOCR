@@ -8,7 +8,7 @@ english_vocab = set(words.words())
 nlp = spacy.load("en_core_web_sm")
 
 def clean_text(text):
-
+    return text
     doc = nlp(text)
     cleaned_words = []
 
