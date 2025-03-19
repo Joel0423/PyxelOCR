@@ -205,7 +205,7 @@ def show_file_upload():
                 st.warning("No text was extracted from the uploaded files.")
 
 # Main app layout
-st.title("TextLens: Document Analysis App")
+st.title("PyxelOCR: Document Analysis App")
 
 # Sidebar for historical outputs
 st.sidebar.title("== History ==")
