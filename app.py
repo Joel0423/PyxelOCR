@@ -3,13 +3,16 @@ from PIL import Image
 import os
 from datetime import datetime
 import json
+import install
+install.install()
+
 from ocr_module import extract_text_from_image, extract_text_from_pdf
 from sentiment_module import SentimentAnalyzer
 from summarizer_module import TextSummarizer
 from clean_txt_module import clean_text
 from streamlit_image_select import image_select
 from browser_detection import browser_detection_engine
-import install
+
 
 # Create necessary folders if they don't exist
 required_folders = [
@@ -20,7 +23,7 @@ required_folders = [
     'user_outputs'
 ]
 
-install.install()
+
 
 for folder in required_folders:
     os.makedirs(folder, exist_ok=True)
