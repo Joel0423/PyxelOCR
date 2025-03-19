@@ -30,6 +30,7 @@ share/python-wheels/
 .venv/
 venv/
 env/
+.env
 
 # Environments created by pipenv
 Pipfile.lock
@@ -58,3 +59,6 @@ tessdata/
 *.tmp
 *.swp
 *.bak
+
+temp/
+user_outputs/

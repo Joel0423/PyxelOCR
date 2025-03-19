@@ -1,34 +1,17 @@
 import spacy
 from textblob import TextBlob
-from collections import defaultdict
+from collections import defaultdict, Counter
 
-# Load spaCy model
+# Load spaCy models
 nlp = spacy.load('en_core_web_sm')
-
-# Custom sentiment lexicon
-SENTIMENT_LEXICON = {
-    'positive': {
-        'good', 'great', 'excellent', 'amazing', 'wonderful', 'fantastic', 'happy',
-        'best', 'love', 'beautiful', 'perfect', 'awesome', 'brilliant', 'outstanding',
-        'superb', 'delighted', 'pleased', 'joy', 'success', 'successful'
-    },
-    'negative': {
-        'bad', 'terrible', 'awful', 'horrible', 'poor', 'worst', 'hate',
-        'disappointing', 'disappointed', 'fail', 'failed', 'failure', 'wrong',
-        'mistake', 'error', 'problem', 'difficult', 'impossible', 'angry', 'sad'
-    }
-}
+nlp_affect = spacy.load('affect_ner')
 
 class SentimentAnalyzer:
     def __init__(self):
-        self.emotion_words = {
-            'joy': ['happy', 'joyful', 'delighted', 'excited', 'pleased', 'glad', 'cheerful'],
-            'sadness': ['sad', 'unhappy', 'depressed', 'gloomy', 'miserable', 'disappointed'],
-            'anger': ['angry', 'furious', 'irritated', 'annoyed', 'outraged', 'frustrated'],
-            'fear': ['scared', 'afraid', 'fearful', 'worried', 'anxious', 'terrified'],
-            'surprise': ['surprised', 'amazed', 'astonished', 'shocked', 'stunned'],
-            'trust': ['trust', 'reliable', 'dependable', 'honest', 'faithful'],
-            'anticipation': ['expect', 'anticipate', 'await', 'looking forward']
+        self.affect_percent = {
+            'fear': 0.0, 'anger': 0.0, 'anticipation': 0.0, 'trust': 0.0, 
+            'surprise': 0.0, 'positive': 0.0, 'negative': 0.0, 'sadness': 0.0, 
+            'disgust': 0.0, 'joy': 0.0
         }
     
     def analyze_sentiment_combined(self, text):
@@ -66,22 +49,28 @@ class SentimentAnalyzer:
         }
     
     def get_emotional_tone(self, text):
-        """Analyzes emotional tone of the text using spaCy."""
-        doc = nlp(text)
-        emotions = defaultdict(int)
+        """Analyzes emotional tone of the text using affect_ner model."""
+        emotions = []
+        doc = nlp_affect(text)
         
-        # Process each token
-        for token in doc:
-            lemma = token.lemma_.lower()
-            for emotion, words in self.emotion_words.items():
-                if lemma in words:
-                    emotions[emotion] += 1
-                    
-            # Check for phrases (bigrams)
-            if token.i < len(doc) - 1:
-                bigram = f"{lemma} {doc[token.i + 1].lemma_.lower()}"
-                for emotion, words in self.emotion_words.items():
-                    if bigram in words:
-                        emotions[emotion] += 1
+        if len(doc.ents) != 0:
+            for ent in doc.ents:
+                emotions.append(ent.label_.lower())
+            
+            affect_counts = Counter()
+            for emotion in emotions:
+                affect_counts[emotion] += 1
+            
+            sum_values = sum(affect_counts.values())
+            if sum_values > 0:
+                for key in affect_counts.keys():
+                    self.affect_percent[key] = float(affect_counts[key]) / float(sum_values)
         
-        return dict(emotions) 
+        # Convert percentages to counts for display
+        emotion_counts = {
+            emotion: int(percentage * 100) 
+            for emotion, percentage in self.affect_percent.items() 
+            if percentage > 0
+        }
+        
+        return emotion_counts 

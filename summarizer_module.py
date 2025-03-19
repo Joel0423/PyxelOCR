@@ -2,6 +2,7 @@ import spacy
 from transformers import pipeline
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
+import os
 
 # Load spaCy model
 nlp = spacy.load('en_core_web_sm')
@@ -73,4 +74,4 @@ class TextSummarizer:
         """Extracts key phrases from the text."""
         doc = nlp(text)
         noun_phrases = [chunk.text for chunk in doc.noun_chunks]
-        return list(set(noun_phrases))  # Remove duplicates 
+        return list(set(noun_phrases))[:min(8,len(noun_phrases))]  # Remove duplicates 

@@ -6,3 +6,5 @@ subprocess.run(cmd)
 print("TextBlob corpora installed")
 
 download('punkt_tab')
+# Download NLTK words list
+download('words')

@@ -1,28 +1,16 @@
 import cv2 as cv
-import pytesseract
 from pdf2image import convert_from_bytes
 import numpy as np
-import shutil
 import streamlit as st
 import requests
 import os
+from dotenv import load_dotenv
 
-# Configure Tesseract path
-pytesseract.pytesseract.tesseract_cmd = None
-
-# search for tesseract binary in path
-@st.cache_resource
-def find_tesseract_binary() -> str:
-    return shutil.which("tesseract")
-
-# set tesseract binary path
-pytesseract.pytesseract.tesseract_cmd = find_tesseract_binary()
-if not pytesseract.pytesseract.tesseract_cmd:
-    st.error("Tesseract binary not found in PATH. Please install Tesseract.")
+load_dotenv()
 
 def preprocess_image(image):
-    """Preprocess image for better OCR results."""
-    # Grayscale, Gaussian blur, Otsu's threshold
+    
+    # Grayscale, Gaussian blur, adaptive threshold
     opencv_image = np.array(image)
     #deskew_im = deskew(opencv_image)
     gray = cv.cvtColor(opencv_image, cv.COLOR_RGB2GRAY)
@@ -33,20 +21,36 @@ def preprocess_image(image):
     return thresh
 
 def extract_text_from_image(image):
-    """Extracts text from an image using OCR."""
-    preprocessed = preprocess_image(image)
-    cv.imwrite("temp/processed.jpg", preprocessed)
-
-    compress_image("temp/processed.jpg", "temp/compression_output/compressed.jpg", target_size_kb=1024)
+    API_KEY = os.getenv("API_KEY")
     
-    response = ocr_space_file("temp/compression_output/compressed.jpg")
+    preprocessed = preprocess_image(image)
+    cv.imwrite(f"temp/processed/{st.session_state.user_id}_processed.jpg", preprocessed)
+
+    compress_image(f"temp/processed/{st.session_state.user_id}_processed.jpg", f"temp/compression_output/{st.session_state.user_id}_compressed.jpg", target_size_kb=1024)
+    
+    response = ocr_space_file(f"temp/compression_output/{st.session_state.user_id}_compressed.jpg", api_key=API_KEY)
     response_json = response.json()
+
+    # Variables to store the line with largest MaxHeight
+    max_height_line = None
+    max_height = 0
+
+    # Parse through the results
+    for result in response_json["ParsedResults"]:
+        if result["TextOverlay"] and result["TextOverlay"]["Lines"]:
+            for line in result["TextOverlay"]["Lines"]:
+                # Check for largest MaxHeight
+                if line["MaxHeight"] > max_height:
+                    max_height = line["MaxHeight"]
+                    max_height_line = line
+                    line_text = " ".join(word["WordText"] for word in max_height_line["Words"])
+
     text = response_json["ParsedResults"][0]["ParsedText"]
 
-    return text
+    return line_text, text
 
 def extract_text_from_pdf(pdf_bytes):
-    """Extracts text from a PDF."""
+    
     images = convert_from_bytes(pdf_bytes)
     all_text = ""
     for image in images:
@@ -55,7 +59,7 @@ def extract_text_from_pdf(pdf_bytes):
         all_text += text + "\n"
     return all_text 
 
-def ocr_space_file(filename, overlay=False, api_key='d02f75016f88957', language='eng'):
+def ocr_space_file(filename, overlay=True, api_key='helloworld', language='eng'):
     """ OCR.space API request with local file.
         Python3.5 - not tested on 2.7
     :param filename: Your file path & name.
@@ -76,7 +80,7 @@ def ocr_space_file(filename, overlay=False, api_key='d02f75016f88957', language=
     with open(filename, 'rb') as f:
         r = requests.post('https://api.ocr.space/parse/image',
                           files={filename: f},
-                          data=payload,
+                          data=payload
                           )
     return r
 
