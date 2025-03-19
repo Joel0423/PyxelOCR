@@ -123,7 +123,7 @@ def display_analysis_output(output_data):
 
 def show_file_upload():
     # File upload and processing
-    st.subheader("High resolution images give better results\nKeep the text as straight as possible")
+    st.write("High resolution images give better results\nKeep the text as straight as possible")
     uploaded_files = st.file_uploader("Upload images or PDF", 
                                     type=["jpg", "jpeg", "png", "pdf"], 
                                     accept_multiple_files=True)
@@ -214,7 +214,7 @@ def show_file_upload():
 st.title("PyxelOCR: Document Analysis App")
 
 # Sidebar for historical outputs
-st.sidebar.title("== History ==")
+st.sidebar.title(" History")
 historical_outputs = load_historical_outputs()
 
 if historical_outputs:
