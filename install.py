@@ -1,7 +1,7 @@
 import subprocess
 from nltk import download
 
-cmd = ['python3','-m','textblob.download_corpora']
+cmd = ['python','-m','textblob.download_corpora']
 subprocess.run(cmd)
 print("TextBlob corpora installed")
 
