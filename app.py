@@ -20,6 +20,8 @@ required_folders = [
     'user_outputs'
 ]
 
+install.install()
+
 for folder in required_folders:
     os.makedirs(folder, exist_ok=True)
 
