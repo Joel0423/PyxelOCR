@@ -9,6 +9,7 @@ from summarizer_module import TextSummarizer
 from clean_txt_module import clean_text
 from streamlit_image_select import image_select
 from browser_detection import browser_detection_engine
+import install
 
 # Create necessary folders if they don't exist
 required_folders = [
